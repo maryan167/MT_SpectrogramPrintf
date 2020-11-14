@@ -54,7 +54,7 @@
 
 void init(int16_t* data);
 static inline void print_array(int8_t active_button, int16_t *data, uint16_t frame_num, uint16_t frame_size);
-static inline void print_array_(int8_t active_button, int16_t *data, uint16_t frame_num, uint16_t frame_size);
+static inline void print_array_(int8_t active_button, char *inshe, int16_t *data, uint16_t frame_num, uint16_t frame_size);
 /*******************************************************************************
 * Function Name: main
 ***************************************
@@ -99,7 +99,8 @@ static inline void print_array_(int8_t active_button, int16_t *data, uint16_t fr
 *******************************************************************************/
 int main(void)
 {
-    uint8_t active_button = BUTTON1; //BUTTON0 - no, BUTTON1 - yes, BUTTON3 - inshe
+    uint8_t active_button = BUTTON3; //BUTTON0 - Ni, BUTTON1 - Tak, BUTTON3 - Inshe
+    char *inshe = ""; // If BUTTON3 is active, write word you want to record
 	uint16_t counter = 0;
 
 	// FFT
@@ -144,7 +145,7 @@ int main(void)
 				turn_led_on_off(active_button, 0);
 				change_led_duty_cycle(BUTTON2, led[BUTTON2].brightness_passive);
 
-				print_array_(active_button, recorded_data[0], frame_num, frame_size);
+				print_array_(active_button, inshe, recorded_data[0], frame_num, frame_size);
 
 				//for (size_t i = 0; i < BUFFER_SIZE; i++) {
 				//	printf("%d ", recorded_data[0][i]);
@@ -178,7 +179,7 @@ int main(void)
 	}
 }
 
-static inline void print_array_(int8_t active_button, int16_t *data, uint16_t frame_num, uint16_t frame_size){
+static inline void print_array_(int8_t active_button, char *inshe, int16_t *data, uint16_t frame_num, uint16_t frame_size){
   static uint16_t counter = 0;
   counter++;
 
@@ -187,12 +188,11 @@ static inline void print_array_(int8_t active_button, int16_t *data, uint16_t fr
   else if (1 == active_button)
     printf("W %d Tak ", counter);
   else if (3 == active_button)
-    printf("W %d Inshe ", counter);
+    printf("W %d %s ", counter, inshe);
 
-  printf("%d %d ", frame_num, frame_size);
+  printf("%d %d", frame_num, frame_size);
 
-  printf("%d", data[0]);
-  for (size_t i = 1; i < BUFFER_SIZE; ++i) {
+  for (size_t i = 0; i < BUFFER_SIZE; ++i) {
 	  printf(" %d", data[i]);
   }
 
