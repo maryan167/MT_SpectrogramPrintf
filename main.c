@@ -53,7 +53,7 @@
 
 
 void init(int16_t* data);
-static inline void print_array(int8_t active_button, int16_t *data, uint16_t frame_num, uint16_t frame_size);
+static inline void print_array(int8_t active_button, char *inshe, int16_t *data, uint16_t frame_num, uint16_t frame_size);
 static inline void print_array_(int8_t active_button, char *inshe, int16_t *data, uint16_t frame_num, uint16_t frame_size);
 /*******************************************************************************
 * Function Name: main
@@ -100,7 +100,9 @@ static inline void print_array_(int8_t active_button, char *inshe, int16_t *data
 int main(void)
 {
     uint8_t active_button = BUTTON3; //BUTTON0 - Ni, BUTTON1 - Tak, BUTTON3 - Inshe
-    char *inshe = ""; // If BUTTON3 is active, write word you want to record
+    char *inshe = "A"; // If BUTTON3 is active, write word you want to record
+    uint8_t spect = 0; // set 1 for spectrogram print too, 0 for word only
+
 	uint16_t counter = 0;
 
 	// FFT
@@ -146,6 +148,11 @@ int main(void)
 				change_led_duty_cycle(BUTTON2, led[BUTTON2].brightness_passive);
 
 				print_array_(active_button, inshe, recorded_data[0], frame_num, frame_size);
+
+				if (spect) {
+					fft_q15(recorded_data[0], recorded_data[1], frame_num, frame_size);
+					print_array(active_button, inshe, recorded_data[1], frame_num, frame_size);
+				}
 
 				//for (size_t i = 0; i < BUFFER_SIZE; i++) {
 				//	printf("%d ", recorded_data[0][i]);
@@ -284,18 +291,20 @@ void init(int16_t* data){
  */
 
 
-static inline void print_array(int8_t active_button, int16_t *data, uint16_t frame_num, uint16_t frame_size){
-  static uint16_t counter = 0;
+static inline void print_array(int8_t active_button, char *inshe, int16_t *data, uint16_t frame_num, uint16_t frame_size){
   uint32_t size = frame_num * frame_size;
+
+  static uint16_t counter = 0;
+  counter++;
 
   if (0 == active_button)
     printf("S %d Ni ", counter);
   else if (1 == active_button)
     printf("S %d Tak ", counter);
+  else if (3 == active_button)
+    printf("S %d %s ", counter, inshe);
 
-  counter++;
-
-  printf("%d %d ", frame_num, frame_size/2);
+  printf("%d %d", frame_num, frame_size/2);
 
   uint32_t pos = frame_size/2;
   uint32_t t_pos;
@@ -310,12 +319,12 @@ static inline void print_array(int8_t active_button, int16_t *data, uint16_t fra
       }
       else{
         if (1 == prev_zero){
-          printf("%d ", 0);
-          printf("%u ", zero_count);
+          printf(" %d", 0);
+          printf(" %u", zero_count);
           zero_count = 0;
           prev_zero = 0;
         }
-        printf("%d ", data[t_pos]);
+        printf(" %d", data[t_pos]);
       }
       t_pos++;
     }
@@ -323,8 +332,8 @@ static inline void print_array(int8_t active_button, int16_t *data, uint16_t fra
   }
 
   if (1 == prev_zero){
-    printf("%d ", 0);
-    printf("%u", zero_count);
+    printf(" %d", 0);
+    printf(" %u", zero_count);
   }
   printf("\r\n");
 }
