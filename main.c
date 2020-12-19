@@ -101,7 +101,8 @@ int main(void)
 {
     uint8_t active_button = BUTTON3; //BUTTON0 - Ni, BUTTON1 - Tak, BUTTON3 - Inshe
     char *inshe = "A"; // If BUTTON3 is active, write word you want to record
-    uint8_t spect = 0; // set 1 for spectrogram print too, 0 for word only
+    uint8_t wav = 0; // set 1 for wav print
+    uint8_t spect = 1; // set 1 for spectrogram print
 
 	uint16_t counter = 0;
 
@@ -122,6 +123,7 @@ int main(void)
 
     change_led_duty_cycle(active_button, led[active_button].brightness_passive);
 	for(;;){
+		if (!wav && !spect) continue;
 		/* Check if the User_Button is pressed */
 		if (cyhal_gpio_read(CYBSP_USER_BTN) == CYBSP_BTN_PRESSED){
 			// If the active_button is not equal to 0 or 1 then recording will start
@@ -147,7 +149,9 @@ int main(void)
 				turn_led_on_off(active_button, 0);
 				change_led_duty_cycle(BUTTON2, led[BUTTON2].brightness_passive);
 
-				print_array_(active_button, inshe, recorded_data[0], frame_num, frame_size);
+				if (wav) {
+					print_array_(active_button, inshe, recorded_data[0], frame_num, frame_size);
+				}
 
 				if (spect) {
 					fft_q15(recorded_data[0], recorded_data[1], frame_num, frame_size);
